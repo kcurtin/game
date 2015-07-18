@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Nabido</title>
+    <script src="phaser.js"></script>
+  </head>
+  <body>
+
+    <script type="text/javascript">
+      window.onload = function() {
+        var game = new Phaser.Game(1200, 700, Phaser.AUTO, '', { preload: preload, create: create });
+        function preload () {
+          game.load.image('logo', 'pink_square.jpg');
+        }
+        function create () {
+          var logo = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');
+          logo.anchor.setTo(0.5, 0.5);
+        }
+      };
+    </script>
+  </body>
+</html>
