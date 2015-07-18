@@ -4,18 +4,105 @@
     <meta charset="UTF-8" />
     <title>Nabido</title>
     <script src="phaser.js"></script>
+    <link href="main.css" rel="stylesheet" title="Main styles">
   </head>
   <body>
-
+    <div id="world"></div>
     <script type="text/javascript">
       window.onload = function() {
-        var game = new Phaser.Game(1200, 700, Phaser.AUTO, '', { preload: preload, create: create });
+        var game = new Phaser.Game(1200, 700, Phaser.AUTO, 'world', { preload: preload, create: create, update: update, render: render });
         function preload () {
-          game.load.image('logo', 'pink_square.jpg');
+          game.stage.backgroundColor = '#ffffff'
+
+          function grid() {
+            var w = game.stage.width,
+            h = game.stage.height;
+
+            bmd = game.add.bitmapData(w, h);
+            sprite = game.add.sprite(0, 0, bmd);
+
+            bmd.ctx.beginPath();
+            bmd.ctx.strokeStyle = "grey";
+
+            for(var i = 0; i < w || i < h; i += 32) {
+              bmd.ctx.lineWidth = .5;
+
+              bmd.ctx.moveTo(i, 0);
+              bmd.ctx.lineTo(i, h);
+
+              bmd.ctx.moveTo(0, i);
+              bmd.ctx.lineTo(w, i);
+            }
+
+            bmd.ctx.stroke();
+          }
+          grid();
         }
+
         function create () {
-          var logo = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');
-          logo.anchor.setTo(0.5, 0.5);
+          game.physics.startSystem(Phaser.Physics.ARCADE);
+
+          var bmd = game.add.bitmapData(100, 100);
+          bmd.circle(50, 50, 50, 'red');
+          bmd.circle(90, 50, 5, 'black');
+          var player = game.add.sprite(100, 100, bmd);
+          player.anchor.set(0.5);
+          game.physics.enable(player, Phaser.Physics.ARCADE);
+          player.body.drag.set(100);
+          player.body.maxVelocity.set(200);
+          this.game.player = player;
+          player.body.collideWorldBounds = true;
+
+          var totems = game.add.group();
+          totems.enableBody = true;
+          totems.physicsBodyType = Phaser.Physics.ARCADE;
+          this.game.totems = totems
+
+          for (var i = 0; i < 5; i++)
+          {
+            var bmd = game.add.bitmapData(50, 50);
+            bmd.circle(25, 25, 25, 'black');
+            var totem = totems.create(game.world.randomX, game.world.randomY, bmd);
+            totem.body.immovable = true;
+          }
+
+          cursors = game.input.keyboard.createCursorKeys();
+          game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
+        }
+
+        function update () {
+          var player = this.game.player;
+          var totems = this.game.totems;
+
+          game.physics.arcade.overlap(player, totems, collisionHandler, null, this);
+
+          if (cursors.up.isDown)
+          {
+            game.physics.arcade.accelerationFromRotation(player.rotation, 200, player.body.acceleration);
+          }
+          else
+          {
+            player.body.acceleration.set(0);
+          }
+          if (cursors.left.isDown)
+          {
+            player.body.angularVelocity = -300;
+          }
+          else if (cursors.right.isDown)
+          {
+            player.body.angularVelocity = 300;
+          }
+          else
+          {
+            player.body.angularVelocity = 0;
+          }
+        }
+
+        function render() {
+        }
+
+        function collisionHandler (player, totem) {
+          totem.kill();
         }
       };
     </script>
