@@ -39,12 +39,13 @@
           grid();
         }
 
+        var speed = 200;
+
         function create () {
           game.physics.startSystem(Phaser.Physics.ARCADE);
 
           var bmd = game.add.bitmapData(100, 100);
           bmd.circle(50, 50, 50, 'red');
-          bmd.circle(90, 50, 5, 'black');
           var player = game.add.sprite(100, 100, bmd);
           player.anchor.set(0.5);
           game.physics.enable(player, Phaser.Physics.ARCADE);
@@ -76,26 +77,16 @@
 
           game.physics.arcade.overlap(player, totems, collisionHandler, null, this);
 
-          if (cursors.up.isDown)
-          {
-            game.physics.arcade.accelerationFromRotation(player.rotation, 200, player.body.acceleration);
+
+          if (cursors.up.isDown) {
+            speed = speed + 5;
           }
-          else
-          {
-            player.body.acceleration.set(0);
+
+          else if (speed > 5) {
+            speed = speed - .35;
           }
-          if (cursors.left.isDown)
-          {
-            player.body.angularVelocity = -300;
-          }
-          else if (cursors.right.isDown)
-          {
-            player.body.angularVelocity = 300;
-          }
-          else
-          {
-            player.body.angularVelocity = 0;
-          }
+
+          player.rotation = game.physics.arcade.moveToPointer(player, speed, game.input.activePointer);
         }
 
         function render() {
