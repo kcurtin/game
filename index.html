@@ -51,8 +51,10 @@
           game.physics.enable(player, Phaser.Physics.ARCADE);
           player.body.drag.set(100);
           player.body.maxVelocity.set(200);
+          player.potentialSpeed = 50;
           this.game.player = player;
           player.body.collideWorldBounds = true;
+          window.player = player
 
           var totems = game.add.group();
           totems.enableBody = true;
@@ -61,10 +63,9 @@
 
           for (var i = 0; i < 5; i++)
           {
-            var bmd = game.add.bitmapData(50, 50);
-            bmd.circle(25, 25, 25, 'black');
-            var totem = totems.create(game.world.randomX, game.world.randomY, bmd);
-            totem.body.immovable = true;
+            var x = game.world.randomX;
+            var y = game.world.randomY;
+            createTotem(x, y);
           }
 
           cursors = game.input.keyboard.createCursorKeys();
@@ -75,7 +76,7 @@
           var player = this.game.player;
           var totems = this.game.totems;
 
-          game.physics.arcade.overlap(player, totems, collisionHandler, null, this);
+          game.physics.arcade.overlap(player, totems, playerTotemCollision, null, this);
 
           if (game.input.activePointer.circle.contains(player.x, player.y)) {
             player.body.velocity.x = 0;
@@ -94,8 +95,23 @@
         function render() {
         }
 
-        function collisionHandler (player, totem) {
-          totem.kill();
+        function playerTotemCollision(player, totem) {
+          if (game.time.time < totem.nextSiphon) { return; }
+
+          totem.key.fill(0, 0, 0, 0.2)
+          totem.damage(10)
+          player.potentialSpeed += 10
+          totem.nextSiphon = game.time.time + totem.siphonRate;
+        }
+
+        function createTotem(x, y) {
+          var bmd = game.add.bitmapData(50, 50);
+          bmd.rect(0, 0, 50, 50, 'red');
+          var totem = game.totems.create(x, y, bmd);
+          totem.health = 100;
+          totem.nextSiphon = 0;
+          totem.siphonRate = 300;
+          totem.body.immovable = true;
         }
       };
     </script>
