@@ -39,7 +39,7 @@
           grid();
         }
 
-        var speed = 200;
+        var velocity = 200;
 
         function create () {
           game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -51,7 +51,7 @@
           game.physics.enable(player, Phaser.Physics.ARCADE);
           player.body.drag.set(100);
           player.body.maxVelocity.set(200);
-          player.potentialSpeed = 50;
+          player.potentialVelocity = 20;
           this.game.player = player;
           player.body.collideWorldBounds = true;
           window.player = player
@@ -83,12 +83,19 @@
             player.body.velocity.y = 0;
           } else {
             if (cursors.up.isDown) {
-              speed = speed + 5;
-            } else if (speed > 5) {
-              speed = speed - .35;
+              if (player.potentialVelocity > 5) {
+                player.potentialVelocity -= 5;
+                velocity += 5;
+              }
             }
 
-            player.rotation = game.physics.arcade.moveToPointer(player, speed, game.input.activePointer);
+            if (velocity > 5) {
+              velocity -= 0.5;
+            }
+
+            console.log(player.potentialVelocity)
+            console.log(velocity)
+            player.rotation = game.physics.arcade.moveToPointer(player, velocity, game.input.activePointer);
           }
         }
 
@@ -100,7 +107,7 @@
 
           totem.key.fill(0, 0, 0, 0.2)
           totem.damage(10)
-          player.potentialSpeed += 10
+          player.potentialVelocity += 10
           totem.nextSiphon = game.time.time + totem.siphonRate;
         }
 
