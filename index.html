@@ -77,16 +77,18 @@
 
           game.physics.arcade.overlap(player, totems, collisionHandler, null, this);
 
+          if (game.input.activePointer.circle.contains(player.x, player.y)) {
+            player.body.velocity.x = 0;
+            player.body.velocity.y = 0;
+          } else {
+            if (cursors.up.isDown) {
+              speed = speed + 5;
+            } else if (speed > 5) {
+              speed = speed - .35;
+            }
 
-          if (cursors.up.isDown) {
-            speed = speed + 5;
+            player.rotation = game.physics.arcade.moveToPointer(player, speed, game.input.activePointer);
           }
-
-          else if (speed > 5) {
-            speed = speed - .35;
-          }
-
-          player.rotation = game.physics.arcade.moveToPointer(player, speed, game.input.activePointer);
         }
 
         function render() {
