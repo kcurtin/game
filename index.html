@@ -61,11 +61,12 @@
           totems.physicsBodyType = Phaser.Physics.ARCADE;
           this.game.totems = totems
 
-          for (var i = 0; i < 5; i++)
-          {
-            var x = game.world.randomX;
-            var y = game.world.randomY;
-            createTotem(x, y);
+          for (var yOffset = 100; yOffset <= 750; yOffset += 250) {
+            for (var i = 0; i < 5; i++) {
+              var x = i * 200;
+              var y = yOffset;
+              createTotem(x, y);
+            }
           }
 
           cursors = game.input.keyboard.createCursorKeys();
@@ -93,8 +94,6 @@
               velocity -= 0.5;
             }
 
-            console.log(player.potentialVelocity)
-            console.log(velocity)
             player.rotation = game.physics.arcade.moveToPointer(player, velocity, game.input.activePointer);
           }
         }
@@ -104,11 +103,14 @@
 
         function playerTotemCollision(player, totem) {
           if (game.time.time < totem.nextSiphon) { return; }
+          if (totem.health <= 10) { totem.tapped = true; }
 
-          totem.key.fill(0, 0, 0, 0.2)
-          totem.damage(10)
-          player.potentialVelocity += 10
-          totem.nextSiphon = game.time.time + totem.siphonRate;
+          if (!totem.tapped) {
+            totem.key.fill(0, 0, 0, 0.2)
+            totem.damage(10)
+            player.potentialVelocity += 10
+            totem.nextSiphon = game.time.time + totem.siphonRate;
+          }
         }
 
         function createTotem(x, y) {
