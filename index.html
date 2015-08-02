@@ -4,13 +4,22 @@
     <meta charset="UTF-8" />
     <title>Nabido</title>
     <script src="phaser.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <link href="main.css" rel="stylesheet" title="Main styles">
   </head>
   <body>
     <div id="world"></div>
     <script type="text/javascript">
       window.onload = function() {
-        var game = new Phaser.Game(1200, 700, Phaser.AUTO, 'world', { preload: preload, create: create, update: update, render: render });
+        var socket = io();
+
+        var game = new Phaser.Game(1200, 700, Phaser.AUTO, 'world', {
+          preload: preload,
+          create: create,
+          update: update,
+          render: render
+        });
+
         function preload () {
           game.stage.backgroundColor = '#ffffff'
 
@@ -45,8 +54,16 @@
           game.physics.startSystem(Phaser.Physics.ARCADE);
 
           var bmd = game.add.bitmapData(100, 100);
-          bmd.circle(50, 50, 50, 'red');
-          var player = game.add.sprite(100, 100, bmd);
+          bmd.circle(50, 50, 50, 'blue');
+          var hq = game.add.sprite(game.width / 2, game.height / 2, bmd);
+          hq.anchor.set(0.5);
+          hq.health = 100;
+          game.physics.enable(hq, Phaser.Physics.ARCADE);
+          this.game.hq = hq
+
+          var bmd = game.add.bitmapData(30, 30);
+          bmd.circle(15, 15, 15, 'red');
+          var player = game.add.sprite(300, 300, bmd);
           player.anchor.set(0.5);
           game.physics.enable(player, Phaser.Physics.ARCADE);
           player.body.drag.set(100);
@@ -55,17 +72,19 @@
           this.game.player = player;
           player.body.collideWorldBounds = true;
           window.player = player
+          socket.emit("newPlayer", { x: player.x, y: player.y })
 
           var totems = game.add.group();
           totems.enableBody = true;
           totems.physicsBodyType = Phaser.Physics.ARCADE;
           this.game.totems = totems
 
-          for (var i = 0; i < 5; i++)
-          {
-            var x = game.world.randomX;
-            var y = game.world.randomY;
-            createTotem(x, y);
+          for (var yOffset = 100; yOffset <= 750; yOffset += 250) {
+            for (var i = 0; i < 5; i++) {
+              var x = i * 200;
+              var y = yOffset;
+              createTotem(x, y);
+            }
           }
 
           cursors = game.input.keyboard.createCursorKeys();
@@ -75,6 +94,8 @@
         function update () {
           var player = this.game.player;
           var totems = this.game.totems;
+
+          socket.emit("playerPosition", { x: player.x, y: player.y })
 
           game.physics.arcade.overlap(player, totems, playerTotemCollision, null, this);
 
@@ -93,8 +114,6 @@
               velocity -= 0.5;
             }
 
-            console.log(player.potentialVelocity)
-            console.log(velocity)
             player.rotation = game.physics.arcade.moveToPointer(player, velocity, game.input.activePointer);
           }
         }
@@ -104,11 +123,22 @@
 
         function playerTotemCollision(player, totem) {
           if (game.time.time < totem.nextSiphon) { return; }
+          if (totem.health <= 10) { totem.tapped = true; }
 
-          totem.key.fill(0, 0, 0, 0.2)
-          totem.damage(10)
-          player.potentialVelocity += 10
-          totem.nextSiphon = game.time.time + totem.siphonRate;
+          if (!totem.tapped) {
+            totem.key.fill(0, 0, 0, 0.2)
+
+            var hq = game.hq;
+            var bm = hq.key;
+            var health = hq.health;
+            hq.health += 2
+            bm.resize(health, health);
+            bm.circle(health / 2, health / 2, health / 2, 'blue')
+
+            totem.damage(10)
+            player.potentialVelocity += 10
+            totem.nextSiphon = game.time.time + totem.siphonRate;
+          }
         }
 
         function createTotem(x, y) {
