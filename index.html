@@ -54,8 +54,16 @@
           game.physics.startSystem(Phaser.Physics.ARCADE);
 
           var bmd = game.add.bitmapData(100, 100);
-          bmd.circle(50, 50, 50, 'red');
-          var player = game.add.sprite(100, 100, bmd);
+          bmd.circle(50, 50, 50, 'blue');
+          var hq = game.add.sprite(game.width / 2, game.height / 2, bmd);
+          hq.anchor.set(0.5);
+          hq.health = 100;
+          game.physics.enable(hq, Phaser.Physics.ARCADE);
+          this.game.hq = hq
+
+          var bmd = game.add.bitmapData(30, 30);
+          bmd.circle(15, 15, 15, 'red');
+          var player = game.add.sprite(300, 300, bmd);
           player.anchor.set(0.5);
           game.physics.enable(player, Phaser.Physics.ARCADE);
           player.body.drag.set(100);
@@ -119,6 +127,14 @@
 
           if (!totem.tapped) {
             totem.key.fill(0, 0, 0, 0.2)
+
+            var hq = game.hq;
+            var bm = hq.key;
+            var health = hq.health;
+            hq.health += 2
+            bm.resize(health, health);
+            bm.circle(health / 2, health / 2, health / 2, 'blue')
+
             totem.damage(10)
             player.potentialVelocity += 10
             totem.nextSiphon = game.time.time + totem.siphonRate;
